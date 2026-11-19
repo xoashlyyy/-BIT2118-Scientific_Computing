@@ -1,0 +1,306 @@
+##### Task_02_numpy_arrays.py
+
+=== A. ORIGINAL: weather station ===
+Mean 23.12 C, min 17.50 C, max 29.40 C
+First six F: [65.3  64.4  64.04 63.5  64.22 66.2 ]
+
+=== C. CHANGED INPUT: heat wave (+5 C to every reading) ===
+Mean 28.12 C, min 22.50, max 34.40
+Range (max-min) original vs heat wave: 11.899999999999999 11.899999999999999
+
+=== E. RELATED CASE: IoT soil-moisture sensor (raw ADC 0-1023 -> %) ===
+Moisture %: [ 6. 12. 18. 30. 42. 52. 58. 62. 66. 68. 69. 70.]
+Mean moisture: 46.1 %
+Readings below 30 % threshold (need irrigation): 3 of 12
+##### Task_03_vectorization.py
+
+=== A. ORIGINAL (N = 1,000,000) ===
+original: N=1,000,000 loop=0.1193s vectorized=0.00220s speed-up=54x
+First five: [0.03787665 0.01266192 0.04637842 0.03092504 0.00078812]
+
+=== C. CHANGED INPUT: N = 10,000 and 5,000,000 ===
+small: N=10,000 loop=0.0011s vectorized=0.00002s speed-up=61x
+large: N=5,000,000 loop=0.6109s vectorized=0.01470s speed-up=42x
+
+=== E. RELATED CASE: gamma correction of a 1000x1000 grey image ===
+Mean brightness before 0.500, after gamma 0.687
+Estimated full loop 0.19s vs vectorized 0.0052s (~37x faster)
+##### Task_04_numerical_errors.py
+
+=== A. ORIGINAL ===
+0.1+0.2 = 0.30000000000000004 | exact ==: False | isclose: True
+Abs err 0.00021356, rel err 0.01510114%
+x=1e-04: direct=0.499987500624, stable=0.499987500625
+x=1e-08: direct=0.499999996961, stable=0.499999998750
+x=1e-12: direct=0.500044450291, stable=0.500000000000
+
+=== C. CHANGED INPUT: approximation 1.41421 instead of 1.414; smaller x ===
+Abs err 3.562e-06, rel err 0.000252%
+x=1e-14: direct=0.488498130835, stable=0.500000000000
+x=1e-16: direct=0.000000000000, stable=0.500000000000
+
+=== E. RELATED CASE: banking - adding 10 cents one million times ===
+Naive sum      : 100000.00000133288 error: 1.3328826753422618e-06
+math.fsum      : 100000.0
+Integer cents  : 100000.0
+float32, 100,000 additions of 0.1 -> 9998.557 (true 10000): single precision drifts far more
+##### Task_05_matrix_algebra.py
+
+=== A. ORIGINAL: rotate 45 deg, scale (2,1.5) ===
+[[ 0.     0.   ]
+ [ 1.414  1.414]
+ [ 0.354  2.475]
+ [-1.061  1.061]]
+T=
+ [[ 1.414 -1.061]
+ [ 1.414  1.061]]
+det = 2.9999999999999996
+
+=== C. CHANGED INPUT: rotate 90 deg, scale (1,1) and scale (3,3) ===
+[[ 0.  0.]
+ [ 0.  1.]
+ [-1.  1.]
+ [-1.  0.]] 
+det = 1.0
+det with scale 3x3 = 9.000000000000002 (area factor 9)
+
+=== E. RELATED CASE: robot-arm triangle, rotate 30 deg + mirror in x + translate (homogeneous) ===
+Transformed triangle:
+ [[4.    1.   ]
+ [2.268 0.   ]
+ [2.384 1.799]]
+Det of 2x2 part (-1 means orientation flipped): -1.0
+##### Task_06_linear_systems.py
+
+=== A. ORIGINAL: servers ===
+Type A, Type B: [3. 4.] | residual norm 0.0
+
+=== C. CHANGED INPUT: totals 30 CPU and 100 GB ===
+Solution: [5. 5.]
+Note: non-integer -> measurement inconsistent with whole servers
+
+=== C2. CHANGED INPUT: nearly singular matrix (Type B ~ 2x Type A) ===
+cond(A) = 6.981769841647476 -> cond(A3) = 250002.00001660935
+Solution with b=[20,40]: [ 5. -0.] | with b=[20,40.01]: [-45. 100.]
+
+=== E. RELATED CASE: 3-loop circuit mesh currents (Kirchhoff voltage law) ===
+Mesh currents (A): [ 1.277   0.1924 -0.5598] | residual 9.992007221626409e-16
+##### Task_07_gaussian_lu.py
+
+=== A. ORIGINAL ===
+1 [5. 5. 5.] residual 0.0
+2 [5.3171 5.2683 4.7561] residual 1.7763568394002505e-15
+3 [4.9024 5.6098 5.5366] residual 0.0
+Direct: [5. 5. 5.]
+
+=== C. CHANGED INPUT: 300x300 system with 500 right-hand sides (speed) ===
+Repeated solve: 0.420s | LU once + reuse: 0.014s | speed-up 30.1x
+
+=== E. RELATED CASE: Leontief input-output economy (3 sectors, 3 demand scenarios) ===
+Base               total output required: [203.74 160.75 147.66]
+Demand +20% agri   total output required: [231.78 166.36 155.14]
+Recession          total output required: [158.13 119.63 106.17]
+##### Task_08_iterative_linear.py
+
+=== A. ORIGINAL (5 nodes, 100 C and 20 C boundaries) ===
+Jacobi: [86.6667 73.3333 60.     46.6667 33.3333] iters 150
+Gauss-Seidel: [86.6667 73.3333 60.     46.6667 33.3333] iters 75
+Direct: [86.6667 73.3333 60.     46.6667 33.3333]
+
+=== C. CHANGED INPUT: tolerance 1e-3 vs 1e-12, and grid size 5 vs 20 nodes ===
+tol=1e-03: Jacobi 70 iters, GS 35 iters
+tol=1e-12: Jacobi 214 iters, GS 107 iters
+20 nodes: Jacobi 1672 iters, GS 842 iters
+
+=== E. RELATED CASE: metal rod, 10 interior points, ends at 0 C and 80 C ===
+Temperatures along rod: [ 7.27 14.55 21.82 29.09 36.36 43.64 50.91 58.18 65.45 72.73]
+Iterations: 244
+Linear profile expected (steady state):  [ 7.27 14.55 21.82 29.09 36.36 43.64 50.91 58.18 65.45 72.73]
+##### Task_09_eigenvalues.py
+
+=== A. ORIGINAL ===
+(np.float64(2.561552812808829), {'A': np.float64(0.2192), 'B': np.float64(0.2808), 'C': np.float64(0.2808), 'D': np.float64(0.2192)}, np.float64(1.5059797815742444e-15))
+
+=== C. CHANGED INPUT: add link A-D ===
+(np.float64(3.0), {'A': np.float64(0.25), 'B': np.float64(0.25), 'C': np.float64(0.25), 'D': np.float64(0.25)}, np.float64(2.220446049250313e-16))
+
+=== C2. CHANGED INPUT: remove node B's links to A and D (B becomes weak) ===
+(np.float64(1.7320508075688772), {'A': np.float64(0.2113), 'B': np.float64(0.2113), 'C': np.float64(0.366), 'D': np.float64(0.2113)}, np.float64(3.1401849173675503e-16))
+
+=== E. RELATED CASE: PCA on exam scores (Maths vs Physics) via covariance eigenvectors ===
+Covariance:
+ [[175.23 148.1 ]
+ [148.1  152.01]]
+Eigenvalues: [ 15.07 312.17]
+Variance explained by PC1: 95.4 %
+PC1 direction: [-0.734 -0.679]
+##### Task_10_bisection_fixed_point.py
+
+=== A. ORIGINAL ===
+Bisection 27.525211 C (38 iters) | Fixed-point 27.525211 C (13 iters)
+
+=== C. CHANGED INPUT: ambient 25->35 C, amplitude 10->20 ===
+Bisection 37.992495 C | Fixed-point 37.992495 C (15 iters)
+
+=== C2. CHANGED INPUT: bracket [30,40] has no sign change ===
+Error: f(a) and f(b) must have different signs
+
+=== E. RELATED CASE: break-even quantity, profit(q)=50q-(2000+20q+0.01q^2) ===
+Break-even at q = 68.22 units
+Break-even at q = 2931.78 units
+##### Task_11_newton_secant.py
+
+=== A. ORIGINAL ===
+Newton IRR 11.542461% (4 iters) | Secant IRR 11.542461% (7 iters)
+
+=== C. CHANGED INPUT: investment 12000 instead of 10000 ===
+Newton IRR 3.329828% | Secant IRR 3.329828%
+
+=== C2. CHANGED INPUT: starting guess x0 = 0.90 for Newton ===
+IRR -154.411050% in 11 iters
+
+=== E. RELATED CASE: loan rate. Borrow 5000, repay 450/month for 12 months ===
+Monthly rate 1.2043%  -> nominal annual 14.45%, effective annual 15.45%
+Total repaid: 5400 | interest paid: 400
+##### Task_12_nonlinear_equations.py
+
+=== A. ORIGINAL (R=2) ===
+  guess [1.0, 1.0] -> [1.51749 1.30278] residual [-0. -0.] converged=True
+  guess [-1.0, 1.0] -> [-1.51749  1.30278] residual [-0. -0.] converged=True
+
+=== C. CHANGED INPUT: radius 2 -> 1 (circle may only touch/miss) ===
+  guess [1.0, 1.0] -> [1. 0.] residual [0. 0.] converged=True
+  guess [-1.0, 1.0] -> [-1.  0.] residual [0. 0.] converged=True
+  guess [0.5, -0.5] -> [ 0. -1.] residual [ 0. -0.] converged=True
+
+=== C2. CHANGED INPUT: radius 0.5 (no real intersection) ===
+  guess [1.0, 1.0] -> [ 0.50049 -0.49972] residual [0.25020572 0.24979436] converged=False
+
+=== E. RELATED CASE: kinematics. Ball: h(t)=2+20t-4.9t^2. When is h = 10 m? ===
+Times (s): [3.6321 0.4495] -> goes up at 0.45 s and comes down at 3.632 s
+Time to hit ground (h=0): [ 4.1793 -0.0977]
+
+=== E2. polynomial x^2-5x+6 ===
+roots: [3. 2.]
+##### Task_13_interpolation.py
+
+=== A. ORIGINAL ===
+10:30 linear 23.25 C | cubic 23.36 C
+
+=== C. CHANGED INPUT: estimate at 13:30 and compare with extrapolation at 15:00 ===
+13:30 linear 25.25 | cubic 25.41
+15:00 cubic extrapolation: 22.94 (unreliable: outside data range)
+Linear at 15:00 -> ValueError (out of bounds)
+
+=== E. RELATED CASE: air-quality sensor lost readings at 11:00 and 12:00 ===
+11:00 PM2.5 estimate: linear 46.3, cubic 47.8 ug/m3
+12:00 PM2.5 estimate: linear 50.7, cubic 53.1 ug/m3
+##### Task_14_curve_fitting.py
+
+=== A. ORIGINAL ===
+a,b,c = [ 2.16700e-03 -1.34524e-01  8.50000e+01] | RMSE 1.55 ms | at 400 users 377.9 ms
+
+=== C. CHANGED INPUT: try linear and cubic models ===
+Linear RMSE 18.83 | prediction 400 users 312.9 ms
+Cubic  RMSE 0.14 | prediction 400 users 387.9 ms
+
+=== C2. CHANGED INPUT: one outlier (response at 250 users = 400 ms) ===
+Quadratic params with outlier: [-9.00000e-04  1.24762e+00 -7.14286e+00] prediction 400: 347.1
+
+=== E. RELATED CASE: bacterial/user growth y=A*exp(r*t) ===
+A=100.0, growth rate r=0.2919/hr, doubling time=2.37 h, forecast t=10: 1853
+##### Task_15_numerical_differentiation.py
+
+=== A. ORIGINAL ===
+t=0s pos=0.0m speed=4.80m/s
+t=1s pos=4.8m speed=5.10m/s
+t=2s pos=10.2m speed=5.65m/s
+t=3s pos=16.1m speed=6.25m/s
+t=4s pos=22.7m speed=6.95m/s
+t=5s pos=30.0m speed=7.65m/s
+t=6s pos=38.0m speed=8.00m/s
+
+=== C. CHANGED INPUT: step size h for f=sin(x) at x=1 (exact cos(1)=0.54030231) ===
+h=1e-01: forward err 4.29e-02 | central err 9.00e-04
+h=1e-02: forward err 4.22e-03 | central err 9.00e-06
+h=1e-03: forward err 4.21e-04 | central err 9.01e-08
+h=1e-06: forward err 4.21e-07 | central err 2.77e-11
+h=1e-10: forward err 5.85e-08 | central err 5.85e-08
+h=1e-14: forward err 3.71e-03 | central err 3.71e-03
+
+=== E. RELATED CASE: acceleration of a car from velocity readings (np.gradient) ===
+Acceleration (m/s^2): [3.1  3.25 3.65 3.75 3.4  3.2 ] | mean 3.39
+##### Task_16_numerical_integration.py
+
+=== A. ORIGINAL ===
+Trapezoid 15.700 kWh | Simpson 15.800 kWh | diff 0.100
+
+=== C. CHANGED INPUT: peak reading 1.8 -> 3.0 kW; and hourly sampling of smooth model ===
+Trapezoid 18.100 | Simpson 19.000
+n= 5 points on sin(x), exact 2: trap err 1.04e-01 | Simpson err 4.56e-03
+n= 9 points on sin(x), exact 2: trap err 2.58e-02 | Simpson err 2.69e-04
+n=33 points on sin(x), exact 2: trap err 1.61e-03 | Simpson err 1.03e-06
+
+=== E. RELATED CASE: total water volume from a flow meter (L/s every 10 s) ===
+Volume trapezoid 177.5 L | Simpson 180.3 L
+##### Task_17_euler_ode.py
+
+=== A. ORIGINAL (h=1) ===
+Euler 26.404 | exact 26.776 | error 0.3720 C
+
+=== C. CHANGED INPUT: step size ===
+h=5.0  : Euler 25.2662  error 1.50980
+h=2.0  : Euler 26.0595  error 0.71650
+h=1.0  : Euler 26.4041  error 0.37196
+h=0.5  : Euler 26.5870  error 0.18901
+h=0.1  : Euler 26.7378  error 0.03825
+h=0.01 : Euler 26.7722  error 0.00384
+
+=== C2. CHANGED INPUT: h=20 with k=0.12 (k*h=2.4 > 2 -> unstable) ===
+Euler values: [ 90.  -66.  152.4]
+
+=== E. RELATED CASE: logistic population growth dP/dt=r P (1-P/K), r=0.4, K=1000, P0=50 ===
+Population at t=10,20,30: [712.8, 995.0, 999.9]
+##### Task_18_scipy_ode.py
+
+=== A. ORIGINAL (R=1k, C=1mF, tau=1 s) ===
+success True | V(5s)=4.9663 V | max error 9.28e-10
+
+=== C. CHANGED INPUT: R=4.7k (tau=4.7 s) -> V at 1 s and 5 s ===
+V(1s)~0.958 V, V(5s)=3.274 V (original reached 4.966 V)
+
+=== C2. CHANGED INPUT: discharge from V0=5 V with Vs=0 ===
+V(1s)~1.839 V (expected 5/e = 1.839), V(5s)=0.0337
+
+=== E. RELATED CASE: SIR epidemic, N=10000, beta=0.4, gamma=0.1 ===
+R0=4.0 | peak infected 4036 at day 27 | total ever infected 9802
+##### Task_19_optimization.py
+
+=== A. ORIGINAL ===
+A=0.000 B=5.882 cost=105.88 | integer best (cost,A,B,cap)=(108, 0, 6, 1020)
+
+=== C. CHANGED INPUT: Type B price rises 18 -> 25 ===
+A=10.000 B=0.000 cost=120.00 | integer best=(120, 10, 0, 1000)
+
+=== C2. CHANGED INPUT: capacity requirement 1000 -> 2500 ===
+A=0.000 B=14.706 cost=264.71 | integer best=(270, 0, 15, 2550)
+
+=== E. RELATED CASE: diet problem. Food X (3 per unit, 20 g protein, 300 kcal), Food Y (2, 10 g, 500 kcal). Need >=60 g protein and >=1500 kcal ===
+Food X 2.143, Food Y 1.714, cost 9.857 | protein 60.0 g, energy 1500 kcal
+##### Task_20_monte_carlo.py
+
+=== A. ORIGINAL ===
+Estimated 10.6160% | theoretical 10.5650%
+
+=== C. CHANGED INPUT: N and standard deviation ===
+N=    100: 2.0000%
+N=  1,000: 10.1000%
+N=100,000: 10.6160%
+std=60: 0.6510% (theory 0.6210%)
+std=120: 10.6160% (theory 10.5650%)
+std=200: 22.6020% (theory 22.6627%)
+
+=== E. RELATED CASE: estimate pi by random points in a unit square ===
+N=      100: pi ~ 3.08000  error 0.06159
+N=   10,000: pi ~ 3.16440  error 0.02281
+N=1,000,000: pi ~ 3.14350  error 0.00190
