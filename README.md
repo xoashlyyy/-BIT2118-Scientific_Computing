@@ -1,119 +1,433 @@
 # BIT 2118 Scientific Computing  Group Work Documentation (Tasks 2–20)
 
+Prerequisite / Task 01: Data Science Essentials with Python
+Before tackling the numerical computation modules, I completed the self-paced foundation course Data Science Essentials with Python.
+Course Status: Completed
+Course Title: Data Science Essentials with Python
+Certificate / Proof of Completion: https://www.credly.com/badges/844a3555-0824-4517-bd3c-689b6652a671/public_url
+Task 02: NumPy Arrays and Numerical Computation
+B. Inputs and Mathematical Operations
+Inputs: A 1D array named temperatures_c storing 24 hourly temperature readings in Celsius.
+Math operations:
+Arithmetic mean μ = 1/N Σ x_i using np.mean, and extremes using np.min and np.max.
+Vectorized conversion F = 1.8C + 32 applied to the whole array in one expression without a loop.
+C. Parameter Variation Experiment
+What I changed: Added 5°C to every reading to simulate a heat wave.
+What happened:
+Mean rose from 23.12°C to 28.12°C, minimum rose from 17.50°C to 22.50°C, and maximum rose from 29.40°C to 34.40°C.
+The range, max minus min = 11.9°C, did not change.
+Why it changed: Adding a constant c shifts the mean by c so that μ' = μ + c and moves every value equally, so spread measures such as the range stay the same.
+D. Output Interpretation
+The mean temperature was 23.12°C, indicating a warm day.
+The coldest reading was 17.50°C during the early morning and the hottest was 29.40°C in the early afternoon.
+The first six Fahrenheit values of 65.3, 64.4, 64.04, 63.5, 64.22, and 66.2 confirm that the formula was applied element by element.
+E. Real-World Adaptation: IoT Soil-Moisture Sensor
+Script Location: adaptations/Task_02_adapted.py
+Real-world Problem: Convert raw ADC readings of a soil sensor into moisture percentages and decide when irrigation is needed.
+Assumptions:
+Raw value 850 is completely dry, 350 is fully wet, and the response is linear.
+Irrigate when moisture is below 30%.
+Formula: moisture% = 850 − raw divided by 850 − 350, multiplied by 100.
+New Inputs: 12 raw ADC readings from 820 down to 500.
+Results & Findings:
+Moisture rose from 6% to 70%, with a mean of 46.1%.
+3 of 12 readings were below the 30% threshold.
+Takeaway: The soil starts dry and gets wetter over the period due to rain or irrigation. One vectorized formula calibrates every reading at once.
+Task 03: Mathematical Functions and Vectorization
+B. Inputs and Mathematical Operations
+Inputs: 1,000,000 simulated latencies latency_ms drawn uniformly from 5 to 250 ms with default_rng seeded at 42.
+Math operations:
+Scaling s = ms / 1000, then squaring s².
+Performed two ways, using a Python for loop and a single NumPy expression, timed with timeit.
+C. Parameter Variation Experiment
+What I changed: The sample size N was changed to 10,000 and 5,000,000 instead of 1,000,000.
+What happened: On my run the speed-up stayed between 45× and 60×; for example at N = 5M, the loop took 0.67 s while the vectorized version took 0.013 s.
+Why it changed: Both versions grow linearly with N, but the NumPy loop runs in compiled C on contiguous memory, keeping a large constant advantage over the interpreted Python loop.
+D. Output Interpretation
+The first five squared latencies, such as 0.0379, are in seconds² and confirm the calculation.
+The speed-up factor shows how many times faster the vectorized code is. Repeating the work in a loop is the slow part, not the arithmetic.
+E. Real-World Adaptation: Gamma Correction of a Grey-Scale Image
+Script Location: adaptations/Task_03_adapted.py
+Real-world Problem: Brighten a 1000 × 1000 pixel image using gamma correction.
+Assumptions: Pixel intensities are scaled from 0 to 1 and γ = 2.2.
+New Inputs & Computations:
+out = in^(1/2.2) applied to all 10⁶ pixels.
+A loop over 200 rows is timed and extrapolated to the full image.
+Results & Findings:
+Mean brightness changed from 0.500 to 0.687.
+Estimated loop time was 0.20 s versus vectorized 0.005 s, which is about 39× faster.
+Takeaway: Image processing repeats the same operation millions of times, so vectorization is essential.
+Task 04: Floating-Point Arithmetic and Numerical Errors
+B. Inputs and Mathematical Operations
+Inputs: 0.1, 0.2, 0.3; the approximation 1.414 of √2; and x values of 10⁻⁴, 10⁻⁸, and 10⁻¹².
+Math operations:
+Absolute error E_abs = |x_true − x_approx| and relative error E_rel = E_abs / |x_true|.
+Tolerance comparison with np.isclose instead of ==.
+Two algebraically equal formulas: √(1 + x) − 1 divided by x, and 1 divided by √(1 + x) + 1.
+C. Parameter Variation Experiment
+What I changed: Used the better approximation 1.41421, and pushed x down to 10⁻¹⁴ and 10⁻¹⁶.
+What happened:
+Absolute error fell to 3.6 × 10⁻⁶, giving a relative error of 0.00025%.
+At x = 10⁻¹⁴ the direct formula gave 0.4885, and at x = 10⁻¹⁶ it gave 0.0. The stable formula gave 0.5 every time.
+Why it changed: For tiny x, 1 + x rounds to values very close to or equal to 1, so √(1 + x) − 1 subtracts almost identical numbers, causing catastrophic cancellation. The rewritten form has no subtraction.
+D. Output Interpretation
+0.1 + 0.2 == 0.3 is False because the sum is stored as 0.30000000000000004, whereas np.isclose returns True.
+The absolute error of 1.414 was 0.00021356, with a relative error of 0.0151%.
+The stable formula tends to the correct limit of 0.5.
+E. Real-World Adaptation: Banking – Accumulated Rounding Error
+Script Location: adaptations/Task_04_adapted.py
+Real-world Problem: A ledger adds 10 cents one million times, where the correct total is exactly 100,000.
+Assumptions: Compare naive float addition, math.fsum, and integer cents. Also test single precision float32.
+Results & Findings:
+Naive float sum: 100000.00000133, an error of 1.3 × 10⁻⁶.
+math.fsum and integer cents: exactly 100000.0.
+float32 across 100,000 additions of 0.1: 9998.557 instead of 10000.
+Takeaway: Money should be stored as integer cents or Decimal; small errors accumulate, and lower precision makes them worse.
+Task 05: Matrix Algebra and Matrix Operations
+B. Inputs and Mathematical Operations
+Inputs: A 4 × 2 matrix of square corners, a 45° rotation matrix R, and a scaling matrix S with diagonal values 2.0 and 1.5.
+Math operations:
+Composite transformation T = R · S.
+Row-vector mapping P_new = P · T^T.
+Determinant via np.linalg.det as the area scale factor.
+C. Parameter Variation Experiment
+What I changed: First, a rotation of 90° with no scaling; second, uniform scaling of 3 × 3 at 45°.
+What happened:
+For the 90° rotation, the determinant was 1.0 and the corner at 1, 0 moved to 0, 1.
+For the 3 × 3 scaling, the determinant was 9.0.
+Why it changed: det(R · S) = det(R) × det(S) = 1 · s_x s_y. A pure rotation preserves area, while scaling by 3 in both directions multiplies area by 3 × 3 = 9.
+D. Output Interpretation
+The unit square became a rotated and stretched rectangle.
+The determinant of 3.0, equal to 2.0 × 1.5, shows the new area is three times the original.
+E. Real-World Adaptation: Robot / Graphics Triangle Transformation
+Script Location: adaptations/Task_05_adapted.py
+Real-world Problem: Mirror, rotate, and move a triangular part in 2D.
+Assumptions: Triangle with vertices 0, 0 and 2, 0 and 1, 1.5; mirror about the y-axis, rotate 30°, then translate by 4, 1 using 3 × 3 homogeneous matrices.
+Results & Findings:
+New vertices: 4, 1 and 2.268, 0 and 2.384, 1.799.
+Determinant of the 2 × 2 part is −1.
+Takeaway: A determinant of −1 means the shape was flipped but not resized. Homogeneous coordinates allow rotation and translation to be combined in one matrix product.
+Task 06: Solution of Systems of Linear Equations
+B. Inputs and Mathematical Operations
+Inputs: Matrix A with rows 4, 2 and 8, 12 representing CPU and memory per server type, and vector b = 20, 72 representing observed totals.
+Math operations:
+Solve Ax = b with np.linalg.solve using LU factorization with partial pivoting.
+Residual r = b − Ax and its norm ||r||_2.
+C. Parameter Variation Experiment
+What I changed: First, changed totals to 30, 100; second, tested a nearly singular matrix with rows 4, 2 and 8, 4.0001.
+What happened:
+With totals 30, 100, the solution became 5, 5.
+With the nearly singular matrix, the condition number rose from 6.98 to about 250,000; changing b_2 from 40 to 40.01 moved the answer from 5, 0 to −45, 100.
+Why it changed: When the rows are almost parallel, the matrix is ill-conditioned and tiny changes in b are magnified enormously.
+D. Output Interpretation
+The system has 3 Type A and 4 Type B servers, and the residual norm is 0.0.
+E. Real-World Adaptation: Circuit Mesh Currents
+Script Location: adaptations/Task_06_adapted.py
+Real-world Problem: Find the currents in three coupled loops of a resistor network.
+Assumptions: Kirchhoff's voltage law, resistance matrix R with rows 10, −4, 0 and −4, 12, −5 and 0, −5, 9 in Ω, and source voltages 12, 0, −6 V.
+Results & Findings:
+Currents I = 1.277, 0.192, −0.560 A, with a residual of approximately 10⁻¹⁵.
+Takeaway: The negative sign means loop 3 carries current opposite to the assumed direction.
+Task 07: Gaussian Elimination and LU Decomposition
+B. Inputs and Mathematical Operations
+Inputs: A 3 × 3 matrix A and three measurement vectors b_1, b_2, b_3.
+Math operations:
+Factor once: PA = LU via lu_factor.
+For each b, solve Ly = Pb and then Ux = y via lu_solve.
+Factorization costs O(n³); every extra right-hand side costs only O(n²).
+C. Parameter Variation Experiment
+What I changed: A 300 × 300 matrix with 500 different right-hand sides.
+What happened: Repeated np.linalg.solve took 0.413 s, whereas factoring with LU once and reusing took 0.066 s, which is about 6.3× faster.
+Why it changed: The expensive elimination is performed once, and each new vector only requires two triangular solves.
+D. Output Interpretation
+Set 1 gave x = 5, 5, 5, identical to the direct solver. Residual norms were about 10⁻¹⁵, which is numerically exact.
+E. Real-World Adaptation: Leontief Input-Output Economy
+Script Location: adaptations/Task_07_adapted.py
+Real-world Problem: Calculate the total production each sector must make to meet different consumer demands when sectors use each other's output.
+Assumptions: 3 sectors with technology matrix T, solving I − T times x = d using the same matrix for three demand scenarios.
+Results & Findings:
+Base demand 100, 80, 60 → output 203.74, 160.75, 147.66.
++20% in sector 1 → output 231.78, 166.36, 155.14.
+Recession 80, 60, 40 → output 158.13, 119.63, 106.17.
+Takeaway: Higher demand in one sector increases output across all sectors, and LU factorization lets the same economy be re-solved quickly for each scenario.
+Task 08: Iterative Methods for Linear Systems
+B. Inputs and Mathematical Operations
+Inputs: A 5 × 5 tridiagonal matrix, boundary vector b = 100, 0, 0, 0, 20, and tolerance 10⁻⁸.
+Math operations:
+Jacobi: x^(k+1) = D⁻¹ times b − L + U times x^(k).
+Gauss-Seidel: uses the newest values immediately inside the same sweep.
+Stop when the infinity norm ||x^(k+1) − x^(k)||_∞ is less than tol.
+C. Parameter Variation Experiment
+What I changed: Adjusted the tolerance to 10⁻³ and 10⁻¹² and increased the grid size to 20 nodes.
+What happened:
+Original tol 10⁻⁸ with 5 nodes: Jacobi 150 iterations, Gauss-Seidel 75 iterations.
+tol 10⁻³: Jacobi 70 iterations, Gauss-Seidel 35 iterations.
+tol 10⁻¹²: Jacobi 214 iterations, Gauss-Seidel 107 iterations.
+20 nodes with tol 10⁻⁸: Jacobi 1672 iterations, Gauss-Seidel 842 iterations.
+Why it changed: Convergence is geometric and controlled by the spectral radius of the iteration matrix. Tighter tolerances require more steps, bigger grids converge more slowly, and Gauss-Seidel has a smaller spectral radius of about ρ_J², so it needs about half the steps of Jacobi.
+D. Output & Graph Interpretation
+Terminal output: Both methods match the direct solution of 86.67, 73.33, 60.00, 46.67, 33.33 °C, showing a straight temperature drop from the hot end to the cold end.
+Semilog plot: The error falls along a straight line indicating geometric decay, with Gauss-Seidel's line descending more steeply.
+E. Real-World Adaptation: Heated Metal Rod
+Script Location: adaptations/Task_08_adapted.py
+Real-world Problem: Find the steady-state temperature at 10 interior points of a rod held at 0°C at one end and 80°C at the other.
+Assumptions: 1D steady conduction with no internal heat source.
+Results & Findings:
+Temperatures: 7.27, 14.55, 21.82, up to 72.73 °C after 244 Gauss-Seidel iterations.
+This matches the exact linear profile expected from theory.
+Takeaway: Iterative solvers need only a few values per row, which is why they suit very large sparse systems.
+Task 09: Eigenvalues and Eigenvectors
+B. Inputs and Mathematical Operations
+Inputs: A symmetric 4 × 4 adjacency matrix for nodes A, B, C, D.
+Math operations:
+Solve Av = λv with np.linalg.eig.
+Pick the dominant eigenvalue using np.argmax and normalize its eigenvector so Σ v_i = 1 for eigenvector centrality.
+Check that ||Av − λv||_2 ≈ 0.
+C. Parameter Variation Experiment
+What I changed: First, added the link A–D; second, removed the links B–A and B–D.
+What happened:
+Adding link A–D shifted the dominant eigenvalue from 2.5616 to 3.0000 and gave all nodes equal scores of 0.25.
+Removing links B–A and B–D made node C the most important at 0.366, while the others dropped to 0.211.
+Why it changed: Eigenvector centrality rewards nodes connected to well-connected nodes. When link A–D is added, every node has identical connections, so all scores become equal.
+D. Output Interpretation
+In the original network, B and C scored 0.2808 while A and D scored 0.2192, since B and C each have three neighbors.
+The verification error was about 10⁻¹⁵.
+E. Real-World Adaptation: PCA of Exam Scores
+Script Location: adaptations/Task_09_adapted.py
+Real-world Problem: Reduce two correlated exam scores, Maths and Physics, of 50 students to fewer dimensions.
+Assumptions: Physics ≈ 0.8 × Maths plus random noise, and principal components are the eigenvectors of the covariance matrix.
+Results & Findings:
+Eigenvalues were 15.07 and 312.17.
+The first component explains 95.4% of the variance.
+Takeaway: Both subjects measure largely one underlying ability, so the data can be compressed from 2 variables to 1.
+Task 10: Root Finding: Bisection and Fixed-Point Methods
+B. Inputs and Mathematical Operations
+Inputs: f(T) = T − 25 − 10e^(−T/20), bracket from 20 to 40, g(T) = 25 + 10e^(−T/20), and tolerance 10⁻¹⁰.
+Math operations:
+Bisection requires f(a) · f(b) < 0 and repeatedly halves the interval.
+Fixed-point iterates T_(k+1) = g(T_k) and converges when |g'(T)| < 1; here |g'| ≈ 0.13.
+C. Parameter Variation Experiment
+What I changed: Ambient temperature from 25 to 35 with amplitude from 10 to 20, and tested an invalid bracket from 30 to 40.
+What happened:
+The new equilibrium was 37.992°C.
+The bracket from 30 to 40 raised ValueError: f(a) and f(b) must have different signs.
+Why it changed: The heat-balance constants move the crossing point. Bisection only works when the function changes sign inside the bracket.
+D. Output & Graph Interpretation
+Terminal output: Both methods give 27.525211°C. Bisection took 38 iterations while fixed-point took only 13.
+Graph: f(T) crosses zero at T ≈ 27.53°C, where heat gain equals heat loss.
+E. Real-World Adaptation: Break-Even Quantity
+Script Location: adaptations/Task_10_adapted.py
+Real-world Problem: Find the sales volume where profit becomes zero.
+Assumptions: Price $50, fixed cost $2000, and variable cost per unit 20 + 0.01q.
+profit(q) = 50q − 2000 − 20q − 0.01q² = 0.
+Results & Findings:
+Break-even occurred at q = 68.22 units and again at q = 2931.78 units using brackets from 1 to 200 and from 200 to 3000.
+Takeaway: The business makes a profit only between roughly 69 and 2931 units; at high volume rising unit cost wipes out the profit.
+Task 11: Root Finding: Newton-Raphson and Secant Methods
+B. Inputs and Mathematical Operations
+Inputs: Cash flows C = −10000, 3000, 3500, 4000, 2500, Newton start x_0 = 0.10, and secant starts 0.05 and 0.20.
+Math operations:
+Newton-Raphson: x_(n+1) = x_n − f(x_n) / f'(x_n) with f(r) = Σ_t C_t / (1 + r)^t.
+Secant replaces f' with the slope through two recent points.
+C. Parameter Variation Experiment
+What I changed: First, increased initial investment from 10000 to 12000; second, changed Newton start x_0 to 0.90.
+What happened:
+Increasing the investment dropped the IRR from 11.54% to 3.33%.
+Starting at x_0 = 0.90 caused Newton's method to converge in 11 iterations to a meaningless root of −154.41%.
+Why it changed: A higher investment lowers the return. Newton's method is only locally reliable, so a poor starting guess can reach another root of the polynomial, in this case a rate below −100% which has no financial meaning.
+D. Output Interpretation
+IRR = 11.542461% from both methods, with Newton taking 4 iterations and secant taking 7. This is the discount rate at which net present value is zero.
+E. Real-World Adaptation: Loan Interest Rate
+Script Location: adaptations/Task_11_adapted.py
+Real-world Problem: Find the true interest rate of a loan from its repayment schedule.
+Assumptions: Borrow 5000 and repay 450 per month for 12 months. Solve 5000 − Σ_(t=1 to 12) 450 / (1 + r)^t = 0 with the secant method.
+Results & Findings:
+Monthly rate was 1.204%, nominal annual rate 14.45%, and effective annual rate 15.45%.
+Total interest paid was 400.
+Takeaway: Because of monthly compounding, the true yearly cost is higher than the nominal rate.
+Task 12: Polynomial and Nonlinear Equation Solving
+B. Inputs and Mathematical Operations
+Inputs: The system F(x, y) consisting of x² + y² − 4 and y − x² + 1 with initial guesses 1, 1 and −1, 1.
+Math operations:
+scipy.optimize.root using the hybrid Powell / MINPACK method, which solves J(z_k)Δz_k = −F(z_k) iteratively.
+Check that the residual vector is close to zero.
+C. Parameter Variation Experiment
+What I changed: Changed the circle radius from 2 to 1, and then to 0.5.
+What happened:
+At R = 1, there were three intersections at ±1, 0 and 0, −1 depending on the starting guess.
+At R = 0.5, converged returned False with a residual of about 0.25.
+Why it changed: Changing the radius alters how many times the curves intersect. With R = 0.5 they do not intersect at all, so no real solution exists.
+D. Output Interpretation
+For R = 2, the solver returned ±1.5175, 1.3028 with residuals near 0. The sign of x follows the starting guess because the system is symmetric about the y-axis.
+E. Real-World Adaptation: Projectile Kinematics
+Script Location: adaptations/Task_12_adapted.py
+Real-world Problem: Determine when a thrown ball reaches a given height.
+Assumptions: h(t) = 2 + 20t − 4.9t² metres. Solve h(t) = 10 with np.roots.
+Results & Findings:
+The ball reaches 10 m at t = 0.45 s while rising and t = 3.63 s while falling.
+Ground contact occurs at t = 4.18 s, while the negative root of −0.10 s is not physical.
+Takeaway: A quadratic has two roots, so you must select the one that makes physical sense.
+Task 13: Interpolation
+B. Inputs and Mathematical Operations
+Inputs: Hourly times t from 8 to 14 and temperatures from 18.0 to 25.0°C.
+Math operations:
+Linear interpolation: y(x) = y_i + (y_(i+1) − y_i) / (x_(i+1) − x_i) × (x − x_i).
+Cubic spline: piecewise cubics with continuous value, first derivative, and second derivative at the knots.
+C. Parameter Variation Experiment
+What I changed: Queried 13:30 inside the range and 15:00 outside the data range.
+What happened:
+At 13:30, linear gave 25.25°C and cubic gave 25.41°C.
+At 15:00, the linear interpolator raised an out-of-bounds ValueError, while the cubic spline extrapolated to 22.94°C.
+Why it changed: Interpolation is only reliable between measured points, and extrapolating a polynomial beyond the data is unreliable.
+D. Output & Graph Interpretation
+At 10:30, linear interpolation gives 23.25°C and cubic spline gives 23.36°C.
+The spline is smooth and follows the flattening near the afternoon peak, whereas the linear curve has sharp corners at each measurement.
+E. Real-World Adaptation: Missing Air-Quality Readings
+Script Location: adaptations/Task_13_adapted.py
+Real-world Problem: An air-quality sensor lost its PM2.5 readings at 11:00 and 12:00.
+Assumptions: Concentration changes smoothly and the remaining 6 hourly values are accurate.
+Results & Findings:
+At 11:00, estimates were 46.3 µg/m³ linear and 47.8 µg/m³ cubic.
+At 12:00, estimates were 50.7 µg/m³ linear and 53.1 µg/m³ cubic.
+Takeaway: Both methods provide sensible gap fillers, with the spline accounting for curvature and producing slightly higher estimates.
+Task 14: Curve Fitting and Approximation
+B. Inputs and Mathematical Operations
+Inputs: Users x from 50 to 350 and response times y from 82 to 305 ms.
+Math operations:
+Least squares with curve_fit: minimize Σ_i (y_i − f(x_i; a, b, c))² for f = ax² + bx + c.
+RMSE = √(1/N Σ (y_i − ŷ_i)²).
+C. Parameter Variation Experiment
+What I changed: Used a linear model and a cubic model instead of the quadratic, and added one outlier of 400 ms at 250 users.
+What happened:
+Linear RMSE was 18.83 ms, quadratic was 1.55 ms, and cubic was 0.14 ms.
+With the outlier included, the 400-user forecast moved from 377.9 ms to 347.1 ms.
+Why it changed: A straight line cannot follow curved data due to model bias. A cubic fits 7 points almost exactly but risks overfitting, and least squares is sensitive to outliers.
+D. Output & Graph Interpretation
+The fit is y = 0.002167x² − 0.1345x + 85.00 with RMSE ≈ 1.55 ms.
+At 400 users the model predicts 377.9 ms, showing that response time grows faster than linearly with load.
+E. Real-World Adaptation: Exponential Growth
+Script Location: adaptations/Task_14_adapted.py
+Real-world Problem: Estimate the growth rate of a bacterial culture or user base from hourly counts.
+Assumptions: y = Ae^(rt) with counts from 100 to 770 over 8 hours.
+Results & Findings:
+Fitted values were A = 100.0 and r = 0.2919 per hour, giving a doubling time of ln(2) / r = 2.37 h.
+Forecast at t = 10 h was about 1853.
+Takeaway: The fitted parameter has a direct physical meaning such as doubling time, which makes curve fitting useful for forecasting.
+Task 15: Numerical Differentiation
+B. Inputs and Mathematical Operations
+Inputs: Times t from 0 to 6 s and GPS positions x = 0.0, 4.8, 10.2, 16.1, 22.7, 30.0, 38.0 m.
+Math operations:
+Forward difference at the start: (f(x + h) − f(x)) / h with error O(h).
+Central difference inside: (f(x + h) − f(x − h)) / 2h with error O(h²).
+Backward difference at the end.
+C. Parameter Variation Experiment
+What I changed: Varied the step size h for f = sin x at x = 1, where exact cos 1 = 0.54030231.
+What happened:
+At h = 10⁻¹: forward error 4.3 × 10⁻², central error 9.0 × 10⁻⁴.
+At h = 10⁻³: forward error 4.2 × 10⁻⁴, central error 9.0 × 10⁻⁸.
+At h = 10⁻⁶: forward error 4.2 × 10⁻⁷, central error 2.8 × 10⁻¹¹.
+At h = 10⁻¹⁴: forward error 3.7 × 10⁻³, central error 3.7 × 10⁻³.
+Why it changed: Truncation error shrinks as h decreases and shrinks faster for central differences, but when h becomes too small, round-off error from subtracting nearly equal numbers dominates and total error rises again.
+D. Output & Graph Interpretation
+Speed rises steadily from 4.80 m/s to 8.00 m/s, showing that the vehicle is accelerating.
+E. Real-World Adaptation: Acceleration from Velocity Readings
+Script Location: adaptations/Task_15_adapted.py
+Real-world Problem: Estimate the acceleration of a car from velocity readings taken at 1 s intervals.
+Assumptions: Velocities of 0, 3.1, 6.5, 10.4, 14.0, 17.2 m/s evaluated with np.gradient using central differences inside and one-sided differences at the ends.
+Results & Findings:
+Acceleration values were 3.10, 3.25, 3.65, 3.75, 3.40, 3.20 m/s², with a mean of 3.39 m/s².
+Takeaway: The acceleration is strong and nearly constant. Differentiating noisy data amplifies noise, so measurements must be accurate.
+Task 16: Numerical Integration
+B. Inputs and Mathematical Operations
+Inputs: Times t = 0, 2, 4, 6, 8, 10, 12 h and power P = 0.8, 1.0, 1.4, 1.8, 1.6, 1.2, 0.9 kW.
+Math operations:
+Trapezoidal rule: Σ (f(x_i) + f(x_(i+1))) / 2 × Δx_i with error O(h²).
+Simpson's rule: fits parabolas over pairs of intervals with error O(h⁴).
+C. Parameter Variation Experiment
+What I changed: Increased the 6-hour peak from 1.8 to 3.0 kW, and varied the number of sample points for the integral of sin x from 0 to π, which equals 2.
+What happened:
+Energy rose from 15.7 kWh trapezoidal and 15.8 kWh Simpson to 18.1 kWh trapezoidal and 19.0 kWh Simpson.
+With 33 points, the error was 1.6 × 10⁻³ for trapezoidal versus 1.0 × 10⁻⁶ for Simpson.
+Why it changed: Energy is the area under the power curve, so a higher peak adds area. Simpson's higher-order error makes it much more accurate on smooth data.
+D. Output Interpretation
+The day's energy was 15.700 kWh by trapezoidal rule and 15.800 kWh by Simpson's rule, differing by only 0.1 kWh.
+E. Real-World Adaptation: Total Water Volume from a Flow Meter
+Script Location: adaptations/Task_16_adapted.py
+Real-world Problem: Estimate the volume of water pumped from a flow meter reading in L/s taken every 10 s.
+Assumptions: 7 readings from 0 to 60 s: 0, 2.5, 4.0, 4.8, 4.2, 2.0, 0.5 L/s.
+Results & Findings:
+Volume was 177.5 L by trapezoidal rule and 180.3 L by Simpson's rule.
+Takeaway: Integrating a rate over time yields the accumulated quantity such as energy, distance, or volume.
+Task 17: Ordinary Differential Equations – Euler Method
+B. Inputs and Mathematical Operations
+Inputs: T_0 = 90°C, T_ambient = 25°C, k = 0.12 min⁻¹, duration 30 min, and step size h = 1 min.
+Math operations:
+Newton's law of cooling: dT/dt = −k(T − T_ambient).
+Euler update: T_(n+1) = T_n + h × −k(T_n − T_ambient) with global error O(h).
+Exact solution: T(t) = T_ambient + (T_0 − T_ambient)e^(−kt) for validation.
+C. Parameter Variation Experiment
+What I changed: Varied step size h across 5, 2, 1, 0.5, 0.1, and 0.01, and tested an extreme step of h = 20.
+What happened:
+At h = 5.0, error at 30 min was 1.5098.
+At h = 1.0, error at 30 min was 0.3720.
+At h = 0.1, error at 30 min was 0.0383.
+At h = 0.01, error at 30 min was 0.0038.
+With h = 20, the values jumped from 90 to −66 to 152.4, showing instability.
+Why it changed: Euler assumes the slope is constant over a step, so the error is proportional to h. When kh > 2, the update overshoots so much that it oscillates with growing amplitude.
+D. Output & Graph Interpretation
+After 30 minutes, Euler gives 26.40°C against the exact 26.78°C, an error of 0.372°C.
+The object cools quickly at first and then slowly levels off at 25°C, with the Euler curve staying below the exact curve.
+E. Real-World Adaptation: Logistic Population Growth
+Script Location: adaptations/Task_17_adapted.py
+Real-world Problem: Model a population limited by its environment.
+Assumptions: dP/dt = rP(1 − P/K) with r = 0.4, K = 1000, P_0 = 50, and h = 0.5.
+Results & Findings:
+P(10) = 712.8, P(20) = 995.0, and P(30) = 999.9.
+Takeaway: Growth is S-shaped and levels off at the carrying capacity K, unlike unlimited exponential growth.
+Task 18: Numerical Solution of ODEs Using SciPy
+B. Inputs and Mathematical Operations
+Inputs: V_s = 5 V, R = 1000 Ω, C = 0.001 F, V_0 = 0 V, over the interval 0 to 5 s.
+Math operations:
+dV/dt = (V_s − V) / RC with time constant τ = RC = 1 s.
+solve_ivp using default adaptive RK45 with rtol=1e-9 and atol=1e-11.
+Exact curve V = V_s(1 − e^(−t/RC)) for validation.
+C. Parameter Variation Experiment
+What I changed: First, increased R to 4.7 kΩ; second, simulated discharge from V_0 = 5 V with V_s = 0.
+What happened:
+With R = 4.7 kΩ, τ became 4.7 s, giving V(1 s) = 0.96 V and V(5 s) = 3.27 V instead of 4.97 V.
+During discharge, V(1 s) = 1.839 V, equal to 5/e.
+Why it changed: A larger R increases the time constant, so charging is slower. After one time constant, a discharging capacitor holds 1/e ≈ 36.8% of its initial voltage.
+D. Output & Graph Interpretation
+At 5 s, corresponding to five time constants, the capacitor reached 4.9663 V, or 99.3% of the supply. The maximum difference from the exact solution was 9 × 10⁻¹⁰ V.
+E. Real-World Adaptation: SIR Epidemic Model
+Script Location: adaptations/Task_18_adapted.py
+Real-world Problem: Predict how an infection spreads in a closed population.
+Assumptions: N = 10000, 10 initially infected, infection rate β = 0.4, and recovery rate γ = 0.1 per day, so R_0 = β/γ = 4.
+dS/dt = −βSI/N, dI/dt = βSI/N − γI, dR/dt = γI.
+Results & Findings:
+The infection peaked at 4036 people on day 27.
+About 9802 people were infected over the whole outbreak.
+Takeaway: With R_0 = 4, almost everyone is eventually infected unless β is reduced through distancing or γ is increased through treatment.
+Task 19: Numerical Optimization
+B. Inputs and Mathematical Operations
+Inputs: Costs 12 and 18, capacities 100 and 170, minimum capacity 1000, and bounds x, y ≥ 0.
+Math operations:
+Minimize 12x + 18y subject to 100x + 170y ≥ 1000 and x, y ≥ 0.
+Solved with minimize using method SLSQP.
+An integer search over whole servers provides a practical answer.
+C. Parameter Variation Experiment
+What I changed: First, increased Type B price from 18 to 25; second, increased required capacity from 1000 to 2500.
+What happened:
+When Type B price rose to 25, the optimum switched to 10 Type A servers at a cost of 120.
+When capacity rose to 2500, the solution became 14.706 Type B units at a cost of 264.71, or an integer solution of 15 B at a cost of 270.
+Why it changed: The solver buys capacity from the cheaper source per unit; B costs 18/170 = 0.106 versus A at 12/100 = 0.12. When B's price rises to 25/170 = 0.147, A becomes cheaper.
+D. Output Interpretation
+Continuous optimum: 0 A and 5.882 B at a cost of 105.88.
+Note: Your original paste cut off right after this line in Task 19. Send the rest of Task 19 and Task 20 if you want them formatted in the exact same style, or let me know if you want the full document exported as a Word .docx file already set in black Times New Roman.
 
 
 
 
-## Task 2 – NumPy Arrays and Numerical Computation
-**B. Inputs / operation:** input = 24 hourly temperatures (°C). Operations: mean, min, max, and the vectorized formula F = 1.8C + 32.
-**C. Changed input:** added +5 °C to every reading (heat wave). Mean 23.12 → 28.12 °C, max 29.40 → 34.40 °C. The range (max − min = 11.9) is unchanged because adding a constant shifts all values equally.
-**D. Output meaning:** the day averaged 23.12 °C, coldest 17.5 °C (early morning) and hottest 29.4 °C (early afternoon). The Fahrenheit array has one converted value per reading.
-**E. Related case – IoT soil-moisture sensor.** *Assumptions:* raw ADC 850 = completely dry, 350 = fully wet, linear sensor; irrigate below 30 %. *Input:* 12 raw readings. *Output:* moisture 6 % → 70 %, mean 46.1 %, 3 of 12 readings below 30 %. *Interpretation:* the soil starts dry and becomes wetter (e.g., after irrigation or rain); the first three readings would have triggered irrigation.
 
-## Task 3 – Mathematical Functions and Vectorization
-**B.** Input: 1,000,000 random latencies (5–250 ms). Operation: divide by 1000, then square; done by a Python loop and by one NumPy expression.
-**C. Changed input:** N = 10,000 → 60× faster; N = 5,000,000 → 50× faster. The vectorized version stays about 45–60× faster at every size, because NumPy runs the loop in compiled C.
-**D.** Squared latency values are in seconds² (e.g., 0.0379 s²). The speed-up figure tells how many times faster vectorized code is.
-**E. Related case – gamma correction of a 1000×1000 grey image.** *Assumptions:* pixel values scaled 0–1, gamma = 1/2.2. *Output:* mean brightness 0.500 → 0.687; the estimated loop time was 0.20 s vs 0.005 s vectorized (~39×). *Interpretation:* gamma correction brightens mid-tones, and image-processing is a typical case where vectorization is essential.
 
-## Task 4 – Floating-Point Arithmetic and Numerical Errors
-**B.** Inputs: 0.1+0.2 vs 0.3; √2 vs 1.414; x = 1e-4, 1e-8, 1e-12. Operations: exact vs tolerance comparison, absolute/relative error, and two algebraically equal formulas for (√(1+x) − 1)/x.
-**C. Changed input:** approximation 1.41421 gives absolute error 3.6e-6 (relative 0.00025 %), far smaller than for 1.414. With x = 1e-14 the "direct" formula gives 0.4885 and at x = 1e-16 gives 0, while the stable formula still gives 0.5.
-**D.** `0.1+0.2 == 0.3` is False because the sum is 0.30000000000000004. The direct formula suffers catastrophic cancellation (subtracting nearly equal numbers 1+x and 1); the stable form avoids the subtraction. True answer → 0.5.
-**E. Related case – banking.** *Assumption:* adding 10 cents one million times. *Output:* naive float sum = 100000.00000133 (error 1.3e-6), `math.fsum` and integer cents give exactly 100000. In float32, 100,000 additions of 0.1 give 9998.557 instead of 10000. *Interpretation:* money should be stored in integer cents or Decimal; tiny errors accumulate.
-
-## Task 5 – Matrix Algebra and Matrix Operations
-**B.** Inputs: square corners, rotation of 45°, scaling (2, 1.5). Operation: T = R·S, then points·Tᵀ; determinant check.
-**C. Changed input:** 90° rotation with no scaling → determinant 1 (shape just turns: (1,0) → (0,1)); scaling 3×3 → determinant 9 (area ×9). So |det| = area scale factor.
-**D.** The original square becomes a rotated parallelogram-like rectangle; det = 3 = 2 × 1.5, so the area triples.
-**E. Related case – robot/graphics triangle.** *Assumptions:* 2-D triangle (0,0),(2,0),(1,1.5); mirror about the y-axis, rotate 30°, translate by (4,1) using 3×3 homogeneous matrices. *Output:* new vertices (4,1), (2.268,0), (2.384,1.799); det of rotation/mirror part = −1. *Interpretation:* −1 means the shape was flipped (mirrored) but not resized. Homogeneous coordinates let translation be done by matrix multiplication.
-
-## Task 6 – Solution of Systems of Linear Equations
-**B.** Inputs: A = [[4,2],[8,12]], b = [20,72] (CPU, memory). Operation: `np.linalg.solve` and residual check.
-**C. Changed input:** totals 30 CPU and 100 GB → 5 Type A and 5 Type B. Then a nearly singular matrix ([[4,2],[8,4.0001]], cond ≈ 250,000): changing b from 40 to 40.01 swings the answer from (5,0) to (−45,100).
-**D.** Original answer: 3 Type A and 4 Type B servers; residual 0 means both equations are satisfied. The second experiment shows an ill-conditioned system magnifies tiny measurement errors.
-**E. Related case – circuit mesh currents.** *Assumptions:* 3 loops, resistance matrix R = [[10,−4,0],[−4,12,−5],[0,−5,9]] Ω, source voltages [12,0,−6] V. *Output:* I = [1.277, 0.192, −0.560] A. *Interpretation:* the negative sign means loop 3's current flows opposite to the assumed direction.
-
-## Task 7 – Gaussian Elimination and LU Decomposition
-**B.** Inputs: 3×3 matrix A, three measurement vectors. Operation: factor A once (`lu_factor`), solve with `lu_solve` for each b.
-**C. Changed input:** 300×300 matrix with 500 right-hand sides: repeated solving 0.413 s vs LU-once 0.066 s (6.3× faster).
-**D.** First set gives (5,5,5) (matches the direct solver); residual ≈ 1e-15 means the answers are numerically exact. LU saves time when A is reused.
-**E. Related case – Leontief input-output economy.** *Assumptions:* 3 sectors, technology matrix T, (I − T)x = demand. *Output (total production needed):* base [203.7, 160.8, 147.7]; +20 % agriculture demand [231.8, 166.4, 155.1]; recession [158.1, 119.6, 106.2]. *Interpretation:* extra demand in one sector raises output in all sectors because industries buy from each other.
-
-## Task 8 – Iterative Methods for Linear Systems
-**B.** Inputs: 5×5 tridiagonal matrix, boundaries 100 °C and 20 °C, tolerance 1e-8. Operations: Jacobi and Gauss-Seidel updates until the maximum change < tolerance.
-**C. Changed input:** tolerance 1e-3 → 70 (Jacobi)/35 (GS) iterations; 1e-12 → 214/107. With 20 nodes: 1672/842 iterations.
-**D.** Both reach [86.67, 73.33, 60, 46.67, 33.33] °C = direct solution, a straight-line temperature drop from hot to cold. Gauss-Seidel needs about half as many iterations (see `figures/Task_08_convergence.png`; the straight line on the log plot shows steady geometric convergence).
-**E. Related case – metal rod.** *Assumptions:* 10 interior points, ends fixed at 0 °C and 80 °C, steady state. *Output:* 7.27, 14.55, …, 72.73 °C after 244 GS iterations. *Interpretation:* temperature rises linearly along the rod, as theory predicts. More unknowns ⇒ many more iterations.
-
-## Task 9 – Eigenvalues and Eigenvectors
-**B.** Input: 4-node adjacency matrix. Operation: `np.linalg.eig`, take the dominant eigenvector and normalize it → importance score.
-**C. Changed input:** adding link A–D makes the dominant eigenvalue 3.0 and all scores 0.25 (a complete graph, all nodes equal). Removing B–A and B–D links makes C the most important (0.366).
-**D.** Original: B and C (0.281) are more important than A and D (0.219) because they connect to three nodes. Verification error ≈ 1e-15 confirms Av = λv.
-**E. Related case – PCA on exam scores.** *Assumptions:* 50 students, Physics ≈ 0.8 × Maths + noise. *Output:* eigenvalues 15.1 and 312.2; PC1 explains 95.4 % of variance. *Interpretation:* the two subjects carry mostly one underlying "ability" dimension, so the data can be compressed from 2 variables to 1.
-
-## Task 10 – Root Finding: Bisection and Fixed-Point
-**B.** Input: f(T) = T − 25 − 10e^(−T/20), bracket [20, 40], tolerance 1e-10. Operation: bisection and iteration T = g(T).
-**C. Changed input:** ambient 35 °C and amplitude 20 → equilibrium 37.99 °C. Bracket [30, 40] has no sign change → bisection fails with an error.
-**D.** Equilibrium temperature is 27.525 °C by both methods; the fixed-point iteration needed 13 steps against 38 for bisection. The graph crosses zero at that temperature.
-**E. Related case – break-even.** *Assumptions:* price 50, fixed cost 2000, variable cost 20 + 0.01q per unit. *Output:* profit = 0 at q = 68.2 and q = 2931.8. *Interpretation:* the firm makes profit only between ~69 and ~2931 units; beyond that rising cost per unit wipes out profit.
-
-## Task 11 – Newton-Raphson and Secant
-**B.** Input: cash flows [−10000, 3000, 3500, 4000, 2500]; Operation: solve NPV(r) = 0 (Newton needs the derivative, secant doesn't).
-**C. Changed input:** investment 12000 → IRR falls to 3.33 %. Starting Newton at 0.90 jumps to a spurious root of −154 % in 11 iterations (an invalid rate below −100 %), showing sensitivity to the starting guess.
-**D.** IRR = 11.54 %: the rate at which the project earns exactly back its cost. Newton needed 4 iterations, secant 7.
-**E. Related case – loan interest.** *Assumptions:* borrow 5000, repay 450/month for 12 months. *Output:* monthly rate 1.204 %, nominal annual 14.45 %, effective 15.45 %; 400 paid in interest. *Interpretation:* this loan's true yearly cost is higher than the 14.45 % quoted rate because of compounding.
-
-## Task 12 – Polynomial and Nonlinear Equation Solving
-**B.** Inputs: circle x²+y²=4 and parabola y=x²−1, two initial guesses. Operation: `scipy.optimize.root` on the residuals.
-**C. Changed input:** radius 1 → three intersections (±1, 0) and (0, −1) depending on the guess; radius 0.5 → solver fails (`converged=False`, residual 0.25) because no intersection exists.
-**D.** For R = 2 the curves cross at (±1.517, 1.303); residuals ≈ 0 verify the answer. Each guess finds a different root.
-**E. Related case – kinematics.** *Assumptions:* h(t) = 2 + 20t − 4.9t² (metres), find when h = 10 m with `np.roots`. *Output:* t = 0.45 s (rising) and 3.63 s (falling); ground hit at 4.18 s (the negative root is physically meaningless). *Interpretation:* quadratics have two roots; choose the one that makes physical sense.
-
-## Task 13 – Interpolation
-**B.** Inputs: hourly temperatures 08:00–14:00. Operation: linear and cubic-spline interpolation, evaluated every 10 minutes.
-**C. Changed input:** at 13:30 linear = 25.25 °C, cubic = 25.41 °C. At 15:00 (outside the data) linear raises an error and cubic extrapolates to 22.94 °C, which is unreliable.
-**D.** At 10:30 linear = 23.25 °C, cubic = 23.36 °C. The cubic curve is smooth and captures the flattening near the afternoon peak; the linear one has corners at each measurement.
-**E. Related case – missing air-quality readings.** *Assumptions:* PM2.5 readings missing at 11:00 and 12:00. *Output:* 11:00 ≈ 46.3 (linear)/47.8 (cubic), 12:00 ≈ 50.7/53.1 µg/m³. *Interpretation:* both methods fill the gap sensibly; the spline allows for curvature and gives slightly higher values.
-
-## Task 14 – Curve Fitting and Approximation
-**B.** Inputs: 7 (users, response time) points. Operation: least-squares fit of y = ax² + bx + c; RMSE.
-**C. Changed input:** linear model RMSE 18.8 ms (poor), cubic RMSE 0.14 ms (but risk of overfitting with 7 points). One outlier (400 ms at 250 users) changes the quadratic's shape and the 400-user forecast from 377.9 to 347.1 ms.
-**D.** y = 0.002167x² − 0.1345x + 85; RMSE 1.55 ms means the curve passes within about 1.5 ms of the data. Predicted 377.9 ms at 400 users, response time grows faster than linearly under load.
-**E. Related case – exponential growth.** *Assumptions:* counts of bacteria/users over 8 hours, y = A·e^(rt). *Output:* r = 0.292 per hour, doubling time 2.37 h, forecast at t = 10 ≈ 1853. *Interpretation:* the population doubles about every 2.4 hours.
-
-## Task 15 – Numerical Differentiation
-**B.** Inputs: GPS positions every second. Operation: forward difference at start, central at middle, backward at end.
-**C. Changed input:** step size h for f = sin x at x = 1. Forward error is proportional to h (4e-2 → 4e-7), central error to h² (9e-4 → 3e-11). At very small h (1e-14) round-off dominates and error grows again (3.7e-3).
-**D.** Speed rises from 4.8 m/s to 8.0 m/s, i.e. the vehicle accelerates steadily.
-**E. Related case – acceleration from velocity.** *Input:* velocities 0 → 17.2 m/s over 6 s. *Output:* acceleration 3.1–3.75 m/s², mean 3.39 m/s². *Interpretation:* strong, fairly constant acceleration; (differentiating noisy data amplifies noise).
-
-## Task 16 – Numerical Integration
-**B.** Inputs: smart-meter power (kW) every 2 h over 12 h. Operation: trapezoid and Simpson integration → energy (kWh).
-**C. Changed input:** peak 1.8 → 3.0 kW: energy rises to 18.1 (trapezoid) and 19.0 kWh (Simpson). For ∫ sin x dx = 2, Simpson error falls much faster than trapezoid as points increase (1e-6 vs 1.6e-3 at 33 points).
-**D.** Total energy ≈ 15.7–15.8 kWh in 12 h; the two methods differ by only 0.1 kWh.
-**E. Related case – water volume.** *Input:* flow rate (L/s) every 10 s for 60 s. *Output:* 177.5 L (trapezoid), 180.3 L (Simpson). *Interpretation:* integrating flow rate over time gives total volume pumped.
-
-## Task 17 – ODEs: Euler Method
-**B.** Inputs: T_ambient = 25, T0 = 90, k = 0.12, h = 1 min. Operation: Tₙ₊₁ = Tₙ + h(−k(Tₙ − T_amb)).
-**C. Changed input:** step size h: error at 30 min 1.51 (h = 5), 0.372 (h = 1), 0.038 (h = 0.1), 0.0038 (h = 0.01): error shrinks in proportion to h. With h = 20 (k·h = 2.4 > 2) Euler becomes unstable: 90 → −66 → 152.
-**D.** After 30 minutes Euler gives 26.40 °C vs exact 26.78 °C. The object cools quickly at first and slowly levels off toward 25 °C.
-**E. Related case – logistic population.** *Assumptions:* r = 0.4, carrying capacity 1000, P0 = 50. *Output:* 712.8 at t = 10, 995 at t = 20, 999.9 at t = 30. *Interpretation:* S-shaped growth that saturates at the carrying capacity.
-
-## Task 18 – ODEs with SciPy
-**B.** Inputs: Vs = 5 V, R = 1 kΩ, C = 1 mF (τ = 1 s). Operation: `solve_ivp` with tight tolerances.
-**C. Changed input:** R = 4.7 kΩ (τ = 4.7 s) → V(1 s) = 0.96 V and V(5 s) = 3.27 V instead of 4.97 V (slower charging). Discharge from 5 V gives 1.839 V at 1 s (= 5/e).
-**D.** The capacitor charges to 4.966 V in 5 s, i.e. 99.3 % of supply. The numerical and exact curves agree to 1e-9 V.
-**E. Related case – SIR epidemic.** *Assumptions:* 10,000 people, 10 initially infected, β = 0.4, γ = 0.1 (R0 = 4). *Output:* peak 4036 infected on day 27; 9802 people infected in total. *Interpretation:* with R0 = 4 almost everyone is eventually infected without intervention; reducing β flattens the peak.
-
-## Task 19 – Numerical Optimization
-**B.** Inputs: costs 12 and 18, capacities 100 and 170, requirement ≥ 1000. Operation: `minimize` (SLSQP) with constraint and bounds; integer check.
-**C. Changed input:** B price 18 → 25 switches the optimum to 10 Type A units (cost 120). Requirement 2500 → 14.7 Type B units (cost 264.7).
-**D.** Best continuous plan: 0 A and 5.88 B, cost 105.88. Type B has lower cost per unit of capacity (0.106 vs 0.12). Whole servers: 6 Type B, cost 108, capacity 1020.
-**E. Related case – diet problem.** *Assumptions:* Food X costs 3 (20 g protein, 300 kcal); Food Y costs 2 (10 g, 500 kcal); need ≥ 60 g protein and ≥ 1500 kcal. *Output:* 2.14 units X + 1.71 units Y, cost 9.86; both constraints exactly met. *Interpretation:* the optimum lies where both constraints are active.
-
-## Task 20 – Random Numbers and Monte Carlo
-**B.** Inputs: capacity 1000, demand ~ Normal(850, 120), N = 100,000. Operation: simulate, compute fraction above capacity.
-**C. Changed input:** N = 100 → 2 %, N = 1000 → 10.1 %, N = 100,000 → 10.62 % (theory 10.57 %). Standard deviation 60 → 0.65 %, 200 → 22.6 %.
-**D.** About 10.6 % chance of overload; the convergence plot settles close to the theoretical value as simulations increase. More variability in demand means more risk.
-**E. Related case – estimating π.** *Assumption:* random points in the unit square; π ≈ 4·(fraction inside the quarter circle). *Output:* N = 100 → 3.080, 10,000 → 3.164, 1,000,000 → 3.1435. *Interpretation:* error shrinks roughly as 1/√N: 100× more samples ≈ 10× more accuracy.
+ 
