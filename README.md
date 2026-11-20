@@ -1,14 +1,9 @@
-# BIT 2118 Scientific Computing – Group Work Documentation (Tasks 2–20)
+# BIT 2118 Scientific Computing  Group Work Documentation (Tasks 2–20)
 
-**How to use this repo:** every `code/Task_XX_*.py` file contains three parts that print under clear headings:
-**A** original program, **C** changed input/parameter, **E** modified program for a related real-world case.
-Run any file with `python code/Task_XX_*.py` (needs numpy, scipy, matplotlib). Figures are saved to `figures/`.
-Raw program output is in `outputs.txt`. Timings in Tasks 3 and 7 vary from machine to machine.
 
-> Before submitting: run the code yourself, change at least one value yourself, and rewrite the "interpretation" in your own words.
-> The GitHub submission is individual, so your repo should reflect your understanding.
 
----
+
+
 ## Task 2 – NumPy Arrays and Numerical Computation
 **B. Inputs / operation:** input = 24 hourly temperatures (°C). Operations: mean, min, max, and the vectorized formula F = 1.8C + 32.
 **C. Changed input:** added +5 °C to every reading (heat wave). Mean 23.12 → 28.12 °C, max 29.40 → 34.40 °C. The range (max − min = 11.9) is unchanged because adding a constant shifts all values equally.
